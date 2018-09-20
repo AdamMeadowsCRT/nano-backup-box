@@ -49,12 +49,10 @@ x = 0
 # Load default font.
 font = ImageFont.load_default()
 
-draw.text((x, top),str(sys.argv[0]),font=font,fill=255)
+draw.text((x, top),str(sys.argv[1]),font=font,fill=255)
 
-if len(sys.argv)<2:
-	draw.text((x, top+8),"*no text input*",font=font,fill=255)
-else:	
-	draw.text((x, top+8),str(sys.argv[1]),font=font,fill=255)
+if len(sys.argv)>2:
+	draw.text((x, top+8),str(sys.argv[2]),font=font,fill=255)
 
 #draw.text((x, top+16),    str(MemUsage),  font=font, fill=255)
 #draw.text((x, top+25),    str(Disk),  font=font, fill=255)
