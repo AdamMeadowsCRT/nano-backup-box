@@ -33,6 +33,10 @@ sudo shutdown -h $SHUTD "Shutdown is activated. To cancel: sudo shutdown -c"
 
 # Wait for a USB storage device (e.g., a USB flash drive)
 STORAGE=$(ls /dev/* | grep "$STORAGE_DEV" | cut -d"/" -f3)
+
+Waiting = "Waiting for USB Device"
+python /home/pi/little-backup-box/scripts/SetText.py "$Waiting"
+
 while [ -z "${STORAGE}" ]
   do
   sleep 1
