@@ -31,20 +31,34 @@ sudo sh -c "echo heartbeat > /sys/class/leds/led0/trigger"
 # Shutdown after a specified period of time (in minutes) if no device is connected.
 sudo shutdown -h $SHUTD "Shutdown is activated. To cancel: sudo shutdown -c"
 
+#initialise display
+python InitText.py
+python /home/pi/little-backup-box/scripts/SetTextbasic.py "Line1" "Line2" "Line3" "Line4"
+
+sleep 1
+
 # Wait for a USB storage device (e.g., a USB flash drive)
 STORAGE=$(ls /dev/* | grep "$STORAGE_DEV" | cut -d"/" -f3)
 
-Waiting = "Waiting for USB Device"
-python /home/pi/little-backup-box/scripts/SetText.py "$Waiting"
+python SetTextbasic.py "Waiting for USB Device" 300
+i=$((SHUTD*60))
 
 while [ -z "${STORAGE}" ]
   do
   sleep 1
+  
+  i=$((i-1))
+  python SetTextbasic.py "Waiting for USB Device" $i
+  
   STORAGE=$(ls /dev/* | grep "$STORAGE_DEV" | cut -d"/" -f3)
 done
 
+
+
 # When the USB storage device is detected, mount it
 mount /dev/"$STORAGE_DEV" "$STORAGE_MOUNT_POINT"
+
+python SetTextbasic.py "USB Device found"
 
 # Cancel shutdown
 sudo shutdown -c
@@ -55,11 +69,14 @@ sudo sh -c "echo 1000 > /sys/class/leds/led0/delay_on"
 
 # Wait for a card reader or a camera
 CARD_READER=$(ls /dev/* | grep "$CARD_DEV" | cut -d"/" -f3)
+python SetTextbasic.py "USB Device found" "Waiting for SD Card"
 until [ ! -z "$CARD_READER" ]
   do
   sleep 1
   CARD_READER=$(ls /dev/sd* | grep "$CARD_DEV" | cut -d"/" -f3)
 done
+
+python SetTextbasic.py "USB Device found" "SD Card found" "Backup in progress"
 
 # If the card reader is detected, mount it and obtain its UUID
 if [ ! -z "$CARD_READER" ]; then
@@ -76,15 +93,18 @@ if [ ! -z "$CARD_READER" ]; then
   ID_FILE=$(ls *.id)
   ID="${ID_FILE%.*}"
   cd
-
+  
+  
   # Set the backup path
   BACKUP_PATH="$STORAGE_MOUNT_POINT"/"$ID"
-  
+    
   # Perform backup using rsync
-  rsync -ah --exclude "*.id" "$CARD_MOUNT_POINT"/ "$BACKUP_PATH"
+  rsync -ah --exclude "*.id" "$CARD_MOUNT_POINT"/ "$BACKUP_PATH"  
 
   # Turn off the ACT LED to indicate that the backup is completed
   sudo sh -c "echo 0 > /sys/class/leds/led0/brightness"
+  
+  python /home/pi/little-backup-box/scripts/SetTextbasic.py "USB Device found" "SD Card found" "Backup Complete" "Ok to Shutdown"
 fi
 
 # Shutdown
